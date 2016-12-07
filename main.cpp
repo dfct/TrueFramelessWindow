@@ -38,34 +38,24 @@ int main(int argc, char *argv[])
 
     //On Windows, the widget needs to be encapsulated in a native window for frameless rendering
     //In this case, QWinWidget #includes "Widget.h", creates it, and adds it to a layout
-	QWinWidget qWinWidget(windowXPos, windowYPos, windowWidth, windowHeight);
-    qWinWidget.show();
+    QWinWidget w;
 
-    return app.exec();
+#else
+
+    //On OS X / Linux, the widget can handle everything itself so just create Widget as normal
+    Widget w;
 
 #endif
 
 #ifdef __APPLE__
 
-    //On OS X, the widget can handle everything itself so just create Widget as normal
-    Widget w;
-	w.setGeometry(windowXPos, windowYPos, windowWidth, windowHeight);
-
     //Then, hide the OS X title bar
     OSXHideTitleBar::HideTitleBar(w.winId());
 
-    w.show();
-    return app.exec();
+#endif
 
-#else
-
-    //Non-Windows Non-Apple platform
-    //Just create Widget as normal
-    Widget w;
     w.setGeometry(windowXPos, windowYPos, windowWidth, windowHeight);
 
     w.show();
     return app.exec();
-
-#endif
 }

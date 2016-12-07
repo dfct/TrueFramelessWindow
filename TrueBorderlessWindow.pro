@@ -28,7 +28,8 @@ win32 {
         qwinwidget.h \
         winnativewindow.h
 
-    LIBS += dwmapi.lib
+    LIBS += "C:\Program Files\Microsoft SDKs\Windows\v7.1\Lib\dwmapi.lib" \
+            "C:\Program Files\Microsoft SDKs\Windows\v7.1\Lib\gdi32.lib"
 }
 
 mac {

@@ -217,6 +217,11 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
+void WinNativeWindow::setGeometry(const int x, const int y, const int width, const int height)
+{
+    MoveWindow(hWnd, x, y, width, height, 1);
+}
+
 void WinNativeWindow::setMinimumSize(const int width, const int height)
 {
     this->minimumSize.required = true;

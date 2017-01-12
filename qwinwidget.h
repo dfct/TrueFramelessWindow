@@ -61,12 +61,13 @@ class QWinWidget : public QWidget
 {
     Q_OBJECT
 public:
-    QWinWidget(int x, int y, int width, int height);
+    QWinWidget();
     ~QWinWidget();
 
     void show();
     void center();
     void showCentered();
+    void setGeometry(int x, int y, int w, int h);
 
     HWND getParentWindow() const;
 

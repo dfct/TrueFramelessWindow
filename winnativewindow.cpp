@@ -112,7 +112,7 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
         case WM_NCHITTEST:
         {
 
-            const LONG borderWidth = 16; //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
+            const LONG borderWidth = 8; //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
             RECT winrect;
             GetWindowRect(hWnd, &winrect);
             long x = GET_X_LPARAM(lParam);
@@ -215,6 +215,11 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
     }
 
     return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+void WinNativeWindow::setGeometry(const int x, const int y, const int width, const int height)
+{
+    MoveWindow(hWnd, x, y, width, height, 1);
 }
 
 void WinNativeWindow::setMinimumSize(const int width, const int height)

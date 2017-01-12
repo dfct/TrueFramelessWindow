@@ -26,6 +26,7 @@ public:
     void setMaximumSize(const int width, const int height);
     int getMaximumHeight();
     int getMaximumWidth();
+    void setGeometry(const int x, const int y, const int width, const int height);
 
 
     HWND hWnd;

@@ -76,7 +76,7 @@
 */
 
 
-QWinWidget::QWinWidget(int x = 100, int y = 100, int width = 1024, int height = 768)
+QWinWidget::QWinWidget()
     : QWidget(nullptr),
       m_Layout(),
       p_Widget(nullptr),
@@ -86,10 +86,10 @@ QWinWidget::QWinWidget(int x = 100, int y = 100, int width = 1024, int height = 
 {
 
     //Create a native window and give it geometry values * devicePixelRatio for HiDPI support
-    p_ParentWinNativeWindow = new WinNativeWindow(x  * window()->devicePixelRatio()
-        , y * window()->devicePixelRatio()
-        , width * window()->devicePixelRatio()
-        , height * window()->devicePixelRatio());
+    p_ParentWinNativeWindow = new WinNativeWindow(1  * window()->devicePixelRatio()
+        , 1 * window()->devicePixelRatio()
+        , 1 * window()->devicePixelRatio()
+        , 1 * window()->devicePixelRatio());
 
 	//If you want to set a minimize size for your app, do so here
     //p_ParentWinNativeWindow->setMinimumSize(1024 * window()->devicePixelRatio(), 768 * window()->devicePixelRatio());
@@ -257,6 +257,11 @@ void QWinWidget::showCentered()
 {
     center();
     show();
+}
+
+void QWinWidget::setGeometry(int x, int y, int w, int h)
+{
+    p_ParentWinNativeWindow->setGeometry(x, y, w, h);
 }
 
 /*!

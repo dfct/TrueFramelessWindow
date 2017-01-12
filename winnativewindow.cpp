@@ -112,7 +112,7 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
         case WM_NCHITTEST:
         {
 
-            const LONG borderWidth = 8; //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
+            const LONG borderWidth = 8 * childWidget->window()->devicePixelRatio(); //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
             RECT winrect;
             GetWindowRect(hWnd, &winrect);
             long x = GET_X_LPARAM(lParam);

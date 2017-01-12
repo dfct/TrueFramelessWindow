@@ -12,3 +12,6 @@ If you’re looking for a true frameless window that can still be resized & Aero
 
 ## How
 The short version of how its done: macOS proves easiest, you just need a bit of Obj-c code to hide the titlebar. On Windows, the trick is capturing native window messages in both QWinWidget (a bridge widget) and a parent native Windows window. With some clever use of HTTRANSPARENT to pass events to the parent native Windows window for resizing & dragging, plus passing close events the other way to the QWinWidget child window for handling within Qt there, you successfully own the entire window area and have Min/Max/Close/resize/aero snap.
+
+## History
+Merged pull request from [@alexandernst](https://github.com/alexandernst/) simplifying the setGeometry approach between Windows and macOS/Linux. Thank you Alexander!

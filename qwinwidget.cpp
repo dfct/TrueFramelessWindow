@@ -106,12 +106,12 @@ QWinWidget::QWinWidget()
     //Create the child window & embed it into the native one
     if (m_ParentNativeWindowHandle)
     {
+        setWindowFlags(Qt::FramelessWindowHint);
         SetWindowLong((HWND)winId(), GWL_STYLE, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
         QWindow *window = windowHandle();
         window->setProperty("_q_embedded_native_parent_handle", (WId)m_ParentNativeWindowHandle);
 
         SetParent((HWND)winId(), m_ParentNativeWindowHandle);
-        window->setFlags(Qt::FramelessWindowHint);
         QEvent e(QEvent::EmbeddingControl);
         QApplication::sendEvent(this, &e);
     }

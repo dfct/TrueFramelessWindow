@@ -107,10 +107,9 @@ QWinWidget::QWinWidget()
     if (m_ParentNativeWindowHandle)
     {
         setWindowFlags(Qt::FramelessWindowHint);
+        setProperty("_q_embedded_native_parent_handle", (WId)m_ParentNativeWindowHandle);
         SetWindowLong((HWND)winId(), GWL_STYLE, WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-        QWindow *window = windowHandle();
-        window->setProperty("_q_embedded_native_parent_handle", (WId)m_ParentNativeWindowHandle);
-
+        
         SetParent((HWND)winId(), m_ParentNativeWindowHandle);
         QEvent e(QEvent::EmbeddingControl);
         QApplication::sendEvent(this, &e);

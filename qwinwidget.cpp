@@ -390,9 +390,7 @@ bool QWinWidget::nativeEvent(const QByteArray &, void *message, long *result)
 				//Then we don't want to enable dragging. This allows for buttons in the toolbar, eg, a Maximize button, to keep the mouse interaction
 				if (QApplication::widgetAt(QCursor::pos()) != p_Widget->toolBar)
                     return false;
-            }
-			else
-			{
+
 				//The mouse is over the toolbar area & is NOT over a child of the toolbar, so pass this message 
 				//through to the native window for HTCAPTION dragging
 				*result = HTTRANSPARENT;

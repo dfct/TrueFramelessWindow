@@ -1,11 +1,11 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QWidget>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QToolBar>
 
-class Widget : public QWidget
+class Widget : public QMainWindow
 {
     Q_OBJECT
 public:

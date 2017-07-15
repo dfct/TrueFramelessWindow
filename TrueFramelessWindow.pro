@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# TrueBorderlessWindow.pro
+# TrueFramelessWindow.pro
 #
 #-------------------------------------------------
 
@@ -8,7 +8,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = TrueBorderlessWindow
+TARGET = TrueFramelessWindow
 TEMPLATE = app
 
 SOURCES += main.cpp\

@@ -3,7 +3,7 @@
 #ifdef _WIN32
 #include "QWinWidget.h"
 #else
-#include "Widget.h"
+#include "widget.h"
 #endif
 
 #ifdef __APPLE__

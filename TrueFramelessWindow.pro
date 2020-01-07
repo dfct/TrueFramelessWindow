@@ -28,7 +28,8 @@ win32 {
 
     LIBS += -L"C:\Program Files\Microsoft SDKs\Windows\v7.1\Lib" \
         -ldwmapi \
-        -lgdi32
+        -lgdi32 \
+        -lUser32
 }
 
 mac {

@@ -76,6 +76,146 @@
 */
 
 
+NativeEventFilter::NativeEventFilter(QWinWidget *widget)
+    : winWidget(widget)
+{
+
+}
+
+bool NativeEventFilter::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
+{
+    if (eventType != "windows_generic_MSG" && eventType != "windows_dispatcher_MSG")
+        return false;
+
+    MSG *msg = (MSG *)message;
+
+    if (msg->message == WM_SETFOCUS)
+    {
+        Qt::FocusReason reason;
+        if (::GetKeyState(VK_LBUTTON) < 0 || ::GetKeyState(VK_RBUTTON) < 0)
+            reason = Qt::MouseFocusReason;
+        else if (::GetKeyState(VK_SHIFT) < 0)
+            reason = Qt::BacktabFocusReason;
+        else
+            reason = Qt::TabFocusReason;
+        QFocusEvent e(QEvent::FocusIn, reason);
+        QApplication::sendEvent(winWidget, &e);
+    }
+
+    //Only close if safeToClose clears()
+    if (msg->message == WM_CLOSE)
+    {
+        if (true /* put your check for it if it safe to close your app here */) //eg, does the user need to save a document
+        {
+            //Safe to close, so hide the parent window
+            ShowWindow(winWidget->m_ParentNativeWindowHandle, false);
+
+            //And then quit
+            QApplication::quit();
+        }
+        else
+        {
+            *result = 0; //Set the message to 0 to ignore it, and thus, don't actually close
+            return true;
+        }
+    }
+
+    //Double check WM_SIZE messages to see if the parent native window is maximized
+    if (msg->message == WM_SIZE)
+    {
+        if (winWidget->p_Widget && winWidget->p_Widget->maximizeButton)
+        {
+            //Get the window state
+            WINDOWPLACEMENT wp;
+            GetWindowPlacement(winWidget->m_ParentNativeWindowHandle, &wp);
+
+            //If we're maximized,
+            if (wp.showCmd == SW_MAXIMIZE)
+            {
+                //Maximize button should show as Restore
+                winWidget->p_Widget->maximizeButton->setChecked(true);
+            }
+            else
+            {
+                //Maximize button should show as Maximize
+                winWidget->p_Widget->maximizeButton->setChecked(false);
+            }
+        }
+    }
+
+    //Pass NCHITTESTS on the window edges as determined by BORDERWIDTH & TOOLBARHEIGHT through to the parent native window
+    if (msg->message == WM_NCHITTEST)
+    {
+        RECT WindowRect;
+        int x, y;
+
+        GetWindowRect(msg->hwnd, &WindowRect);
+        x = GET_X_LPARAM(msg->lParam) - WindowRect.left;
+        y = GET_Y_LPARAM(msg->lParam) - WindowRect.top;
+
+        if (x >= winWidget->BORDERWIDTH && x <= WindowRect.right - WindowRect.left - winWidget->BORDERWIDTH && y >= winWidget->BORDERWIDTH && y <= winWidget->TOOLBARHEIGHT)
+        {
+            if (winWidget->p_Widget->toolBar)
+            {
+                //If the mouse is over top of the toolbar area BUT is actually positioned over a child widget of the toolbar,
+                //Then we don't want to enable dragging. This allows for buttons in the toolbar, eg, a Maximize button, to keep the mouse interaction
+                if (QApplication::widgetAt(QCursor::pos()) != winWidget->p_Widget->toolBar)
+                    return false;
+            }
+
+                //The mouse is over the toolbar area & is NOT over a child of the toolbar, so pass this message
+                //through to the native window for HTCAPTION dragging
+                *result = HTTRANSPARENT;
+                return true;
+
+        }
+        else if (x < winWidget->BORDERWIDTH && y < winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (x > WindowRect.right - WindowRect.left - winWidget->BORDERWIDTH && y < winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (x > WindowRect.right - WindowRect.left - winWidget->BORDERWIDTH && y > WindowRect.bottom - WindowRect.top - winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (x < winWidget->BORDERWIDTH && y > WindowRect.bottom - WindowRect.top - winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (x < winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (y < winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (x > WindowRect.right - WindowRect.left - winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+        else if (y > WindowRect.bottom - WindowRect.top - winWidget->BORDERWIDTH)
+        {
+            *result = HTTRANSPARENT;
+            return true;
+        }
+
+        return false;
+    }
+
+    return false;
+}
+
 QWinWidget::QWinWidget()
     : QWidget(nullptr),
       m_Layout(),
@@ -84,6 +224,7 @@ QWinWidget::QWinWidget()
       _prevFocus(nullptr),
       _reenableParent(false)
 {
+    qApp->installNativeEventFilter(new NativeEventFilter(this));
 
     //Create a native window and give it geometry values * devicePixelRatio for HiDPI support
     p_ParentWinNativeWindow = new WinNativeWindow(1  * window()->devicePixelRatio()
@@ -312,137 +453,6 @@ void QWinWidget::onCloseButtonClicked()
     {
         //Do nothing, and thus, don't actually close the window
     }
-}
-
-bool QWinWidget::nativeEvent(const QByteArray &, void *message, long *result)
-{
-    MSG *msg = (MSG *)message;
-
-    if (msg->message == WM_SETFOCUS)
-    {
-        Qt::FocusReason reason;
-        if (::GetKeyState(VK_LBUTTON) < 0 || ::GetKeyState(VK_RBUTTON) < 0)
-            reason = Qt::MouseFocusReason;
-        else if (::GetKeyState(VK_SHIFT) < 0)
-            reason = Qt::BacktabFocusReason;
-        else
-            reason = Qt::TabFocusReason;
-        QFocusEvent e(QEvent::FocusIn, reason);
-        QApplication::sendEvent(this, &e);
-    }
-
-    //Only close if safeToClose clears()
-    if (msg->message == WM_CLOSE)
-    {
-		if (true /* put your check for it if it safe to close your app here */) //eg, does the user need to save a document
-		{
-			//Safe to close, so hide the parent window
-			ShowWindow(m_ParentNativeWindowHandle, false);
-
-			//And then quit
-			QApplication::quit();
-		}
-		else
-        {
-            *result = 0; //Set the message to 0 to ignore it, and thus, don't actually close
-            return true;
-        }
-    }
-
-    //Double check WM_SIZE messages to see if the parent native window is maximized
-    if (msg->message == WM_SIZE)
-    {
-        if (p_Widget && p_Widget->maximizeButton)
-        {
-			//Get the window state
-            WINDOWPLACEMENT wp;
-            GetWindowPlacement(m_ParentNativeWindowHandle, &wp);
-
-			//If we're maximized, 
-            if (wp.showCmd == SW_MAXIMIZE)
-            {
-                //Maximize button should show as Restore
-                p_Widget->maximizeButton->setChecked(true);
-            }
-            else
-            {
-                //Maximize button should show as Maximize
-                p_Widget->maximizeButton->setChecked(false);
-            }
-        }
-    }
-
-    //Pass NCHITTESTS on the window edges as determined by BORDERWIDTH & TOOLBARHEIGHT through to the parent native window
-    if (msg->message == WM_NCHITTEST)
-    {
-        RECT WindowRect;
-        int x, y;
-
-        GetWindowRect(msg->hwnd, &WindowRect);
-        x = GET_X_LPARAM(msg->lParam) - WindowRect.left;
-        y = GET_Y_LPARAM(msg->lParam) - WindowRect.top;
-
-        if (x >= BORDERWIDTH && x <= WindowRect.right - WindowRect.left - BORDERWIDTH && y >= BORDERWIDTH && y <= TOOLBARHEIGHT)
-		{
-            if (p_Widget->toolBar)
-            {
-                //If the mouse is over top of the toolbar area BUT is actually positioned over a child widget of the toolbar, 
-				//Then we don't want to enable dragging. This allows for buttons in the toolbar, eg, a Maximize button, to keep the mouse interaction
-				if (QApplication::widgetAt(QCursor::pos()) != p_Widget->toolBar)
-                    return false;
-	    	}
-			
-				//The mouse is over the toolbar area & is NOT over a child of the toolbar, so pass this message 
-				//through to the native window for HTCAPTION dragging
-				*result = HTTRANSPARENT;
-				return true;
-
-        }
-        else if (x < BORDERWIDTH && y < BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (x > WindowRect.right - WindowRect.left - BORDERWIDTH && y < BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (x > WindowRect.right - WindowRect.left - BORDERWIDTH && y > WindowRect.bottom - WindowRect.top - BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (x < BORDERWIDTH && y > WindowRect.bottom - WindowRect.top - BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (x < BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (y < BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (x > WindowRect.right - WindowRect.left - BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-        else if (y > WindowRect.bottom - WindowRect.top - BORDERWIDTH)
-        {
-            *result = HTTRANSPARENT;
-            return true;
-        }
-
-        return false;
-    }
-
-    return false;
 }
 
 /*!

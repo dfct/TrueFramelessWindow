@@ -90,6 +90,7 @@ public slots:
     void onCloseButtonClicked();
 
 protected:
+    void closeEvent(QCloseEvent *event) override;
     void childEvent( QChildEvent *e ) override;
     bool eventFilter( QObject *o, QEvent *e ) override;
 

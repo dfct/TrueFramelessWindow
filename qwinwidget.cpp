@@ -105,19 +105,7 @@ bool NativeEventFilter::nativeEventFilter(const QByteArray &eventType, void *mes
     //Only close if safeToClose clears()
     if (msg->message == WM_CLOSE)
     {
-        if (true /* put your check for it if it safe to close your app here */) //eg, does the user need to save a document
-        {
-            //Safe to close, so hide the parent window
-            ShowWindow(winWidget->m_ParentNativeWindowHandle, false);
-
-            //And then quit
-            QApplication::quit();
-        }
-        else
-        {
-            *result = 0; //Set the message to 0 to ignore it, and thus, don't actually close
-            return true;
-        }
+        //do nothing
     }
 
     //Double check WM_SIZE messages to see if the parent native window is maximized
@@ -302,7 +290,6 @@ QWinWidget::QWinWidget()
 
     //Send the parent native window a WM_SIZE message to update the widget size 
     SendMessage(m_ParentNativeWindowHandle, WM_SIZE, 0, 0);
-
 }
 
 
@@ -441,23 +428,19 @@ void QWinWidget::onMaximizeButtonClicked()
 
 void QWinWidget::onCloseButtonClicked()
 {
-    if(true /* put your check for it if it safe to close your app here */) //eg, does the user need to save a document
-    {
-		//Safe to close, so hide the parent window
-        ShowWindow(m_ParentNativeWindowHandle, false);
-
-		//And then quit
-        QApplication::quit();
-    }
-    else
-    {
-        //Do nothing, and thus, don't actually close the window
-    }
+    close();
 }
 
 /*!
     \reimp
 */
+
+void QWinWidget::closeEvent(QCloseEvent *event)
+{
+    //use closeEvent to check for it whether it is safe to close your app here or not
+    ShowWindow(m_ParentNativeWindowHandle, false);
+}
+
 bool QWinWidget::eventFilter(QObject *o, QEvent *e)
 {
     QWidget *w = (QWidget*)o;

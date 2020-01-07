@@ -3,12 +3,10 @@
 #include <dwmapi.h>
 #include <stdexcept>
 
-
-HWND WinNativeWindow::childWindow = nullptr;
-QWidget* WinNativeWindow::childWidget = nullptr;
-
 WinNativeWindow::WinNativeWindow(const int x, const int y, const int width, const int height)
     : hWnd(nullptr)
+    , childWindow(nullptr)
+    , childWidget(nullptr)
 {
 
 	//The native window technically has a background color. You can set it here
@@ -96,9 +94,9 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
         //If the parent window gets any close messages, send them over to QWinWidget and don't actually close here
         case WM_CLOSE:
         {
-            if (childWindow)
+            if (window->childWindow)
             {
-                SendMessage(childWindow, WM_CLOSE, 0, 0);
+                SendMessage(window->childWindow, WM_CLOSE, 0, 0);
                 return 0;
             }
             break;
@@ -112,7 +110,7 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
         case WM_NCHITTEST:
         {
 
-            const LONG borderWidth = 8 * childWidget->window()->devicePixelRatio(); //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
+            const LONG borderWidth = 8 * window->childWidget->window()->devicePixelRatio(); //This value can be arbitrarily large as only intentionally-HTTRANSPARENT'd messages arrive here
             RECT winrect;
             GetWindowRect(hWnd, &winrect);
             long x = GET_X_LPARAM(lParam);
@@ -178,19 +176,19 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
             WINDOWPLACEMENT wp;
             wp.length = sizeof(WINDOWPLACEMENT);
             GetWindowPlacement(hWnd, &wp);
-            if (childWidget)
+            if (window->childWidget)
             {
                 if (wp.showCmd == SW_MAXIMIZE)
                 {
-                    childWidget->setGeometry(8, 8 //Maximized window draw 8 pixels off screen
-                        , winrect.right / childWidget->window()->devicePixelRatio() - 16
-                        , winrect.bottom / childWidget->window()->devicePixelRatio() - 16);
+                    window->childWidget->setGeometry(8, 8 //Maximized window draw 8 pixels off screen
+                        , winrect.right / window->childWidget->window()->devicePixelRatio() - 16
+                        , winrect.bottom / window->childWidget->window()->devicePixelRatio() - 16);
                 }
                 else
                 {
-                    childWidget->setGeometry(0, 0 
-                        , winrect.right / childWidget->window()->devicePixelRatio()
-                        , winrect.bottom / childWidget->window()->devicePixelRatio());
+                    window->childWidget->setGeometry(0, 0
+                        , winrect.right / window->childWidget->window()->devicePixelRatio()
+                        , winrect.bottom / window->childWidget->window()->devicePixelRatio());
                 }
             }
 
@@ -201,7 +199,7 @@ LRESULT CALLBACK WinNativeWindow::WndProc(HWND hWnd, UINT message, WPARAM wParam
         {
             MINMAXINFO* minMaxInfo = (MINMAXINFO*)lParam;
             if (window->minimumSize.required) {
-                minMaxInfo->ptMinTrackSize.x = window->getMinimumWidth();;
+                minMaxInfo->ptMinTrackSize.x = window->getMinimumWidth();
                 minMaxInfo->ptMinTrackSize.y = window->getMinimumHeight();
             }
 

@@ -53,9 +53,22 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QAbstractNativeEventFilter>
 
 #include "widget.h"
 #include "WinNativeWindow.h"
+
+class QWinWidget;
+
+class NativeEventFilter : public QAbstractNativeEventFilter
+{
+public:
+    explicit NativeEventFilter(QWinWidget *widget);
+    bool nativeEventFilter(const QByteArray &eventType, void *message, long *result) override;
+
+private:
+    QWinWidget *winWidget;
+};
 
 class QWinWidget : public QWidget
 {
@@ -77,13 +90,12 @@ public slots:
     void onCloseButtonClicked();
 
 protected:
+    void closeEvent(QCloseEvent *event) override;
     void childEvent( QChildEvent *e ) override;
     bool eventFilter( QObject *o, QEvent *e ) override;
 
     bool focusNextPrevChild(bool next) override;
     void focusInEvent(QFocusEvent *e) override;
-
-    bool nativeEvent(const QByteArray &eventType, void *message, long *result) override;
 
 
 private:
@@ -104,7 +116,7 @@ private:
     void resetFocus();
 
 
-
+    friend class NativeEventFilter;
 };
 
 #endif // QWINWIDGET_H

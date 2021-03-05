@@ -314,7 +314,7 @@ void QWinWidget::onCloseButtonClicked()
     }
 }
 
-bool QWinWidget::nativeEvent(const QByteArray &, void *message, long *result)
+bool QWinWidget::nativeEvent(const QByteArray &, void *message, qintptr *result)
 {
     MSG *msg = (MSG *)message;
 

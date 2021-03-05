@@ -83,7 +83,7 @@ protected:
     bool focusNextPrevChild(bool next) override;
     void focusInEvent(QFocusEvent *e) override;
 
-    bool nativeEvent(const QByteArray &eventType, void *message, long *result) override;
+    bool nativeEvent(const QByteArray& eventType, void* message, qintptr* result) override;
 
 
 private:
